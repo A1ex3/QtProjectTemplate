@@ -20,7 +20,7 @@ python configure.py --drive-letter <DRIVE_LETTER>
 
 ### Build the project
 ```cmd
-cmake -S. -B out -A x64
+cmake -S . -B out -A x64
 ```
 
 ```cmd
