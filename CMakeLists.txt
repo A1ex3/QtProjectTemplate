@@ -12,11 +12,6 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_PREFIX_PATH "$ENV{QT_FULL_DIRECTORY}")
 
-if(UNIX)
-    set(QT_DLLS_PATH "$ENV{QT_FULL_DIRECTORY}/lib")
-    set(OS_DLLS_PATH "/lib/x86_64-linux-gnu")
-endif()
-
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
 add_executable(${PROJECT_NAME}
@@ -30,6 +25,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     MACOSX_BUNDLE ON
 )
 
-if(UNIX)
+if(WIN32)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND windeployqt.exe $<TARGET_FILE_DIR:${PROJECT_NAME}>/${PROJECT_NAME}.exe)
+elseif(UNIX)
     set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 endif()
