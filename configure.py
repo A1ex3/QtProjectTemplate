@@ -1,28 +1,26 @@
-import subprocess, logging, pathlib, os, sys, argparse, shutil
+import subprocess, pathlib, os, argparse, shutil
 from build.third_party_info import QT_INFO
 from build.system import current_os, get_mount_partitions
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler(stream=sys.stdout)
-logger.addHandler(handler)
 
 PWD = pathlib.Path().absolute()
 BUILD_DIR = "build"
 BUILD_DIR_WINDOWS = f"{BUILD_DIR}\\windows"
+BUILD_DIR_LINUX = f"{BUILD_DIR}/linux"
 
 def run_command(cmd):
     result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors='ignore')
-    result_str = ""
-    if result.stdout:
-        result_str = result.stdout
-    elif result.stderr:
-        result_str = result.stderr
-    
-    logger.info(result_str)
-    assert result.returncode == 0, f"Command: {cmd}. Status code: {result.returncode}"
-    return result_str, result.returncode
 
+    stdout_data = result.stdout
+    stderr_data = result.stderr
+
+    if stdout_data:
+        print(stdout_data)
+    if stderr_data:
+        print(stderr_data)
+    
+    assert result.returncode == 0, f"Command: {cmd}. Status code: {result.returncode}"
+    
+    return result.returncode
 
 def dir_is_exists(path):
     if os.path.isdir(path):
@@ -42,12 +40,16 @@ def remove_path(path):
 class BuildThirdParty:
     def __init__(self, windows_drive_letter = None):
         self.__SCRIPT_BUILD_QT_WINDOWS = f"{BUILD_DIR_WINDOWS}\\build_qt.bat"
+        self.__SCRIPT_BUILD_QT_LINUX = f"{BUILD_DIR_LINUX}/build_qt.sh"
 
         self.python_libs()
         self.qt(windows_drive_letter)
 
     def python_libs(self):
-        run_command("python -m pip install html5lib")
+        if current_os() == "windows":
+            run_command("python -m pip install html5lib")
+        elif current_os() == "linux":
+            run_command("python3 -m pip install html5lib")
 
     def qt(self, drive_letter=None):
         """
@@ -55,27 +57,57 @@ class BuildThirdParty:
             drive_letter (str | None) - only for Windows.
         """
 
-        logger.info("Starting QT setup...")
+        print("Starting Qt setup...")
         if current_os() == "windows":
             assert drive_letter in get_mount_partitions(), f"Error: the drive letter must be one of these: {get_mount_partitions()}. Got letter: {drive_letter}"
 
             if not dir_is_exists(f"{drive_letter}:/Qt/{QT_INFO.version}"):
-                logger.info("Starting 'configure' QT...")
+                print("Starting 'configure' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} configure {drive_letter} {QT_INFO.version}")
-                logger.info("Starting 'build' QT...")
+                print("Starting 'build' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} build {drive_letter}")
-                logger.info("Starting 'install' QT...")
+                print("Starting 'install' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} install {drive_letter} {QT_INFO.version}")
-                logger.info("Starting 'update_env' QT...")
+                print("Starting 'update_env' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} update_env {drive_letter} {QT_INFO.version}")
-            else:
+
                 if dir_is_exists(f"{drive_letter}:/Qt/qt-build"):
-                    logger.info(f"Delete directory...: {drive_letter}:/Qt/qt-build")
+                    print(f"Delete directory...: {drive_letter}:/Qt/qt-build")
+                    remove_path(f"{drive_letter}:/Qt/qt-build")
+            else:
+                print(f"Qt is already installed at path: {drive_letter}:\Qt\{QT_INFO.version}")
+
+                if dir_is_exists(f"{drive_letter}:/Qt/qt-build"):
+                    print(f"Delete directory...: {drive_letter}:/Qt/qt-build")
                     remove_path(f"{drive_letter}:/Qt/qt-build")
                 
-                logger.info(f"Qt is already installed at path: {drive_letter}:\Qt\{QT_INFO.version}")
-                logger.info("Starting 'update_env' QT...")
+                print("Starting 'update_env' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} update_env {drive_letter} {QT_INFO.version}")
+        
+        if current_os() == "linux":
+            if not dir_is_exists(f"/usr/lib/Qt/{QT_INFO.version}"):
+                print("Starting 'configure' Qt...")
+                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} configure {QT_INFO.version}")
+                print("Starting 'build' Qt...")
+                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} build")
+                print("Starting 'install' Qt...")
+                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} install {QT_INFO.version}")
+                print("Starting 'update_env' Qt...")
+                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} update_env {QT_INFO.version}")
+
+                if dir_is_exists("/tmp/Qt/qt-build"):
+                    print("Delete directory...: /tmp/Qt")
+                    remove_path("/tmp/Qt")
+
+            else:
+                print(f"Qt is already installed at path: /usr/lib/Qt/{QT_INFO.version}")
+
+                if dir_is_exists("/tmp/Qt/qt-build"):
+                    print("Delete directory...: /tmp/Qt")
+                    remove_path("/tmp/Qt")
+
+                print("Starting 'update_env' Qt...")
+                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} update_env {QT_INFO.version}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Build Third Party Dependencies.")
@@ -87,6 +119,8 @@ if __name__ == '__main__':
     if current_os() == 'windows':
         drive_letter = args.drive_letter
         BuildThirdParty(drive_letter)
+    elif current_os() == 'linux':
+        BuildThirdParty()
     else:
-        logger.info(f"Unsupported OS: {current_os()}")
+        print(f"Unsupported OS: {current_os()}")
         exit(1)
