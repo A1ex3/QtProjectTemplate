@@ -56,7 +56,7 @@
 
 ## Clone source code.
 ```bash
-git clone https://github.com/A1ex3/QtProjectTemplate
+git clone https://github.com/A1ex3/QtProjectTemplate.git
 ```
 
 ## Prepare dependencies. Note: for the script to work correctly, you must use the `bash` shell and run the script with root privileges.
