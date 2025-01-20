@@ -10,7 +10,7 @@
 
 ## Clone source code.
 ```cmd
-git clone --recursive https://github.com/A1ex3/QtProjectTemplate
+git clone https://github.com/A1ex3/QtProjectTemplate
 ```
 
 ### Prepare dependencies. Run "x64 Native Tools Command Prompt for VS 2022" as administrator.

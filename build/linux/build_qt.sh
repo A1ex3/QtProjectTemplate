@@ -17,7 +17,6 @@ function configure () {
 
     cd /tmp/Qt/qt-build
 
-    
     $CURRENT_DIR/third_party/qt/configure \
     -no-pch \
     -shared \
@@ -75,10 +74,10 @@ function update_env () {
         exit 1
     fi
 
-    echo "export PATH=\"\$PATH:$qt_full_directory/bin\"" | sudo tee /etc/profile.d/qt_init.sh > /dev/null
-    echo "export QT_FULL_DIRECTORY=\"$qt_full_directory\"" | sudo tee -a /etc/profile.d/qt_init.sh > /dev/null
+    echo "export PATH=\"\$PATH:$qt_full_directory/bin\"" | tee /etc/profile.d/qt_init.sh > /dev/null
+    echo "export QT_FULL_DIRECTORY=\"$qt_full_directory\"" | tee -a /etc/profile.d/qt_init.sh > /dev/null
 
-    sudo chmod +x /etc/profile.d/qt_init.sh
+    chmod +x /etc/profile.d/qt_init.sh
 
     echo "Warning: use the command 'source /etc/profile' to update the environment variables!"
 }

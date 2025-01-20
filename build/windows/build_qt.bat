@@ -40,7 +40,6 @@ if "%ARG_STAGE%"=="configure" (
     -shared ^
     -opensource ^
     -confirm-license ^
-    -nomake tools ^
     -nomake tests ^
     -nomake examples ^
     -skip qt3d ^

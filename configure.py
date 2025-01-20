@@ -8,6 +8,8 @@ BUILD_DIR_WINDOWS = f"{BUILD_DIR}\\windows"
 BUILD_DIR_LINUX = f"{BUILD_DIR}/linux"
 
 def run_command(cmd):
+    print(cmd)
+
     result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors='ignore')
 
     stdout_data = result.stdout
@@ -37,7 +39,7 @@ def remove_path(path):
     else:
         return
 
-class BuildThirdParty:
+class PrepareThirdParty:
     def __init__(self, windows_drive_letter = None):
         self.__SCRIPT_BUILD_QT_WINDOWS = f"{BUILD_DIR_WINDOWS}\\build_qt.bat"
         self.__SCRIPT_BUILD_QT_LINUX = f"{BUILD_DIR_LINUX}/build_qt.sh"
@@ -62,6 +64,14 @@ class BuildThirdParty:
             assert drive_letter in get_mount_partitions(), f"Error: the drive letter must be one of these: {get_mount_partitions()}. Got letter: {drive_letter}"
 
             if not dir_is_exists(f"{drive_letter}:/Qt/{QT_INFO.version}"):
+                if not dir_is_exists("third_party/qt"):
+                    print("Qt sources not found. Cloning...")
+                    run_command(f"git clone {QT_INFO.repository} third_party/qt")
+                    os.chdir("third_party/qt")
+                    run_command(f"git checkout {QT_INFO.hash_commit}")
+                    run_command(f"git submodule update --init --recursive --depth=1 qtbase")
+                    os.chdir(PWD)
+
                 print("Starting 'configure' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} configure {drive_letter} {QT_INFO.version}")
                 print("Starting 'build' Qt...")
@@ -86,6 +96,14 @@ class BuildThirdParty:
         
         if current_os() == "linux":
             if not dir_is_exists(f"/usr/lib/Qt/{QT_INFO.version}"):
+                if not dir_is_exists("third_party/qt"):
+                    print("Qt sources not found. Cloning...")
+                    run_command(f"git clone {QT_INFO.repository} third_party/qt")
+                    os.chdir("third_party/qt")
+                    run_command(f"git checkout {QT_INFO.hash_commit}")
+                    run_command(f"git submodule update --init --recursive --depth=1 qtbase")
+                    os.chdir(PWD)
+
                 print("Starting 'configure' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} configure {QT_INFO.version}")
                 print("Starting 'build' Qt...")
@@ -98,7 +116,6 @@ class BuildThirdParty:
                 if dir_is_exists("/tmp/Qt/qt-build"):
                     print("Delete directory...: /tmp/Qt")
                     remove_path("/tmp/Qt")
-
             else:
                 print(f"Qt is already installed at path: /usr/lib/Qt/{QT_INFO.version}")
 
@@ -118,9 +135,9 @@ if __name__ == '__main__':
 
     if current_os() == 'windows':
         drive_letter = args.drive_letter
-        BuildThirdParty(drive_letter)
+        PrepareThirdParty(drive_letter)
     elif current_os() == 'linux':
-        BuildThirdParty()
+        PrepareThirdParty()
     else:
         print(f"Unsupported OS: {current_os()}")
         exit(1)
