@@ -1,4 +1,4 @@
-import platform, os
+import platform, ctypes
 
 def current_os():
     if platform.system() == "Windows":
@@ -10,6 +10,17 @@ def current_os():
     
 def get_mount_partitions():
     if current_os() == "windows":
-        return [drive.strip().replace(":", "") for drive in os.popen('wmic logicaldisk get name').read().splitlines() if drive.strip() and not drive.startswith('Name')]
+        GetLogicalDrives = ctypes.windll.kernel32.GetLogicalDrives
+        driveflags = GetLogicalDrives()
+        
+        if driveflags == 0:
+            return []
+        
+        drives = []
+        for i in range(26):
+            if driveflags & (1 << i):
+                drives.append(f"{chr(65 + i)}")
+
+        return drives
     else:
         return []

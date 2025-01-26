@@ -44,14 +44,7 @@ class PrepareThirdParty:
         self.__SCRIPT_BUILD_QT_WINDOWS = f"{BUILD_DIR_WINDOWS}\\build_qt.bat"
         self.__SCRIPT_BUILD_QT_LINUX = f"{BUILD_DIR_LINUX}/build_qt.sh"
 
-        self.python_libs()
         self.qt(windows_drive_letter)
-
-    def python_libs(self):
-        if current_os() == "windows":
-            run_command("python -m pip install html5lib")
-        elif current_os() == "linux":
-            run_command("python3 -m pip install html5lib")
 
     def qt(self, drive_letter=None):
         """
