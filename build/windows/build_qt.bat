@@ -140,10 +140,15 @@ if "%ARG_STAGE%"=="update_env" (
     set "ARG_DRIVE_LETTER=%2"
     set "ARG_QT_VERSION=%3"
 
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path /t REG_EXPAND_SZ /d "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!\bin;%PATH%" /f
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v QT_FULL_DIRECTORY /t REG_EXPAND_SZ /d "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!" /f
+    for /f "tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path') do set "TMP_PATH=%%B"
 
-    setx Path "%Path%"
+    echo !TMP_PATH! | find /i "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!\bin" >nul
+    if not errorlevel 1 (
+        echo Info: Path to "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!\bin" is already in PATH.
+    ) else (
+        setx /M QT_FULL_DIRECTORY "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!"
+        setx /M Path "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!\bin;!TMP_PATH!"
+    )
 )
 
 cd "%PWD%"

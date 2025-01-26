@@ -5,7 +5,6 @@
 - cmake (>=3.25)
 - ninja (>=1.12.1)
 - python (>= 3.10)
-- msys2
 - git
 
 ## Clone source code.
