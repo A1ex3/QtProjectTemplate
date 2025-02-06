@@ -26,7 +26,7 @@ function configure () {
     -nomake tests \
     -nomake examples \
     -skip qt3d -skip qt5compat -skip qtactiveqt -skip qtcanvas3d -skip qtcharts \
-    -skip qtcoap -skip qtconnectivity -skip qtdatavis3d -skip qtdeclarative \
+    -skip qtcoap -skip qtconnectivity -skip qtdatavis3d \
     -skip qtdoc -skip qtfeedback -skip qtgamepad -skip qtgraphs -skip qtgrpc \
     -skip qthttpserver -skip qtimageformats -skip qtlanguageserver -skip qtlocation \
     -skip qtlottie -skip qtmqtt -skip qtmultimedia -skip qtnetworkauth -skip qtopcua \

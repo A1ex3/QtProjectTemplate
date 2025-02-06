@@ -53,7 +53,6 @@ if "%ARG_STAGE%"=="configure" (
     -skip qtcoap ^
     -skip qtconnectivity ^
     -skip qtdatavis3d ^
-    -skip qtdeclarative ^
     -skip qtdoc ^
     -skip qtfeedback ^
     -skip qtgamepad ^

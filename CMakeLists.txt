@@ -6,15 +6,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 set(CMAKE_PREFIX_PATH "$ENV{QT_FULL_DIRECTORY}")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+qt_standard_project_setup()
 
-add_executable(${PROJECT_NAME}
+qt_add_executable(${PROJECT_NAME}
     src/main.cpp
 )
 
