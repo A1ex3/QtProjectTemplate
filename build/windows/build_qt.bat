@@ -40,7 +40,8 @@ if "%ARG_STAGE%"=="configure" (
 
     !PWD!\third_party\qt\configure.bat ^
     -no-pch ^
-    -shared ^
+    -static ^
+    -static-runtime ^
     -opensource ^
     -confirm-license ^
     -nomake tests ^

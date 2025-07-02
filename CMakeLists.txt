@@ -25,8 +25,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     MACOSX_BUNDLE ON
 )
 
-if(WIN32)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND windeployqt.exe $<TARGET_FILE_DIR:${PROJECT_NAME}>/${PROJECT_NAME}.exe)
-elseif(UNIX)
+if(UNIX)
     set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 endif()
