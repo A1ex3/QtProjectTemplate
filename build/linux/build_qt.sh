@@ -22,9 +22,15 @@ function configure () {
     -shared \
     -opensource \
     -confirm-license \
-    -nomake tools \
     -nomake tests \
     -nomake examples \
+    -qt-pcre \
+    -qt-zlib \
+    -qt-harfbuzz \
+    -qt-libpng \
+    -qt-libjpeg \
+    -system-freetype \
+    -fontconfig \
     -skip qt3d -skip qt5compat -skip qtactiveqt -skip qtcanvas3d -skip qtcharts \
     -skip qtcoap -skip qtconnectivity -skip qtdatavis3d \
     -skip qtdoc -skip qtfeedback -skip qtgamepad -skip qtgraphs -skip qtgrpc \

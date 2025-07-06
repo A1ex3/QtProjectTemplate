@@ -2,4 +2,4 @@
 
 ## Build instructions:
 - [Windows](docs/building_windows.md)
-- [Linux](docs/building_linux.md)
+- [Linux (Docker)](docs/building_linux.md)

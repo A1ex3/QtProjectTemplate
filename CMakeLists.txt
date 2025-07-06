@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.20)
 
 project(QtProjectTemplate)
 
@@ -26,7 +26,19 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 if(WIN32)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND windeployqt.exe $<TARGET_FILE_DIR:${PROJECT_NAME}>/${PROJECT_NAME}.exe)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND windeployqt.exe $<TARGET_FILE_DIR:${PROJECT_NAME}>/${PROJECT_NAME}.exe
+    )
 elseif(UNIX)
     set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/appimages
+    )
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND linuxdeployqt ${CMAKE_SOURCE_DIR}/qtproject.desktop -appimage
+        COMMAND ${CMAKE_COMMAND} -E rename
+            ${CMAKE_BINARY_DIR}/QtProjectTemplate-x86_64.AppImage
+            ${CMAKE_BINARY_DIR}/appimages/QtProjectTemplate-x86_64.AppImage
+    )
 endif()

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=QtProjectTemplate
+Exec=QtProjectTemplate
+Icon=default
+Categories=Utility;
+Terminal=false
