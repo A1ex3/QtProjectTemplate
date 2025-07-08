@@ -62,7 +62,7 @@ class PrepareThirdParty:
                     run_command(f"git clone {QT_INFO.repository} third_party/qt")
                     os.chdir("third_party/qt")
                     run_command(f"git checkout {QT_INFO.hash_commit}")
-                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations")
+                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations qttools")
                     os.chdir(PWD)
 
                 print("Starting 'configure' Qt...")
@@ -94,7 +94,7 @@ class PrepareThirdParty:
                     run_command(f"git clone {QT_INFO.repository} third_party/qt")
                     os.chdir("third_party/qt")
                     run_command(f"git checkout {QT_INFO.hash_commit}")
-                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations")
+                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations qttools")
                     os.chdir(PWD)
 
                 print("Starting 'configure' Qt...")

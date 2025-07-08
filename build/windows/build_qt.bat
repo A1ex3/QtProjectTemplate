@@ -86,7 +86,6 @@ if "%ARG_STAGE%"=="configure" (
     -skip qtserialport ^
     -skip qtspeech ^
     -skip qtsystems ^
-    -skip qttools ^
     -skip qtvirtualkeyboard ^
     -skip qtwayland ^
     -skip qtwebchannel ^

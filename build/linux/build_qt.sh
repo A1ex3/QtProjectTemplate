@@ -39,7 +39,7 @@ function configure () {
     -skip qtpim -skip qtpositioning -skip qtqa -skip qtquick3d -skip qtquick3dphysics \
     -skip qtquickeffectmaker -skip qtquicktimeline -skip qtremoteobjects -skip qtrepotools \
     -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport \
-    -skip qtspeech -skip qtsystems -skip qttools \
+    -skip qtspeech -skip qtsystems \
     -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel -skip qtwebengine \
     -skip qtwebglplugin -skip qtwebsockets -skip qtwebview -skip qtxmlpatterns \
     -release \
