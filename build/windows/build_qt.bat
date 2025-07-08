@@ -45,6 +45,11 @@ if "%ARG_STAGE%"=="configure" (
     -confirm-license ^
     -nomake tests ^
     -nomake examples ^
+    -qt-pcre ^
+    -qt-zlib ^
+    -qt-harfbuzz ^
+    -qt-libpng ^
+    -qt-libjpeg ^
     -skip qt3d ^
     -skip qt5compat ^
     -skip qtactiveqt ^
@@ -59,7 +64,6 @@ if "%ARG_STAGE%"=="configure" (
     -skip qtgraphs ^
     -skip qtgrpc ^
     -skip qthttpserver ^
-    -skip qtimageformats ^
     -skip qtlanguageserver ^
     -skip qtlocation ^
     -skip qtlottie ^
@@ -80,12 +84,9 @@ if "%ARG_STAGE%"=="configure" (
     -skip qtsensors ^
     -skip qtserialbus ^
     -skip qtserialport ^
-    -skip qtshadertools ^
     -skip qtspeech ^
-    -skip qtsvg ^
     -skip qtsystems ^
     -skip qttools ^
-    -skip qttranslations ^
     -skip qtvirtualkeyboard ^
     -skip qtwayland ^
     -skip qtwebchannel ^

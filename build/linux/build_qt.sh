@@ -34,12 +34,12 @@ function configure () {
     -skip qt3d -skip qt5compat -skip qtactiveqt -skip qtcanvas3d -skip qtcharts \
     -skip qtcoap -skip qtconnectivity -skip qtdatavis3d \
     -skip qtdoc -skip qtfeedback -skip qtgamepad -skip qtgraphs -skip qtgrpc \
-    -skip qthttpserver -skip qtimageformats -skip qtlanguageserver -skip qtlocation \
+    -skip qthttpserver -skip qtlanguageserver -skip qtlocation \
     -skip qtlottie -skip qtmqtt -skip qtmultimedia -skip qtnetworkauth -skip qtopcua \
     -skip qtpim -skip qtpositioning -skip qtqa -skip qtquick3d -skip qtquick3dphysics \
     -skip qtquickeffectmaker -skip qtquicktimeline -skip qtremoteobjects -skip qtrepotools \
-    -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtshadertools \
-    -skip qtspeech -skip qtsvg -skip qtsystems -skip qttools -skip qttranslations \
+    -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport \
+    -skip qtspeech -skip qtsystems -skip qttools \
     -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel -skip qtwebengine \
     -skip qtwebglplugin -skip qtwebsockets -skip qtwebview -skip qtxmlpatterns \
     -release \

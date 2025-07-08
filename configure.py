@@ -62,7 +62,7 @@ class PrepareThirdParty:
                     run_command(f"git clone {QT_INFO.repository} third_party/qt")
                     os.chdir("third_party/qt")
                     run_command(f"git checkout {QT_INFO.hash_commit}")
-                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative")
+                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations")
                     os.chdir(PWD)
 
                 print("Starting 'configure' Qt...")
@@ -78,7 +78,7 @@ class PrepareThirdParty:
                     print(f"Delete directory...: {drive_letter}:/Qt/qt-build")
                     remove_path(f"{drive_letter}:/Qt/qt-build")
             else:
-                print(f"Qt is already installed at path: {drive_letter}:\Qt\{QT_INFO.version}")
+                print(f"Qt is already installed at path: {drive_letter}:/Qt/{QT_INFO.version}")
 
                 if dir_is_exists(f"{drive_letter}:/Qt/qt-build"):
                     print(f"Delete directory...: {drive_letter}:/Qt/qt-build")
@@ -94,7 +94,7 @@ class PrepareThirdParty:
                     run_command(f"git clone {QT_INFO.repository} third_party/qt")
                     os.chdir("third_party/qt")
                     run_command(f"git checkout {QT_INFO.hash_commit}")
-                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative")
+                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations")
                     os.chdir(PWD)
 
                 print("Starting 'configure' Qt...")
