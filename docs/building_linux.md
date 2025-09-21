@@ -15,5 +15,5 @@ docker build -t qtproject:latest -f build/linux/Dockerfile .
 
 ## Building the project.
 ```bash
-docker run --rm -it -v "$PWD:/usr/qtproject" qtproject:latest
+docker run --rm -it -v "$PWD:/home/qtproject" qtproject:latest
 ```

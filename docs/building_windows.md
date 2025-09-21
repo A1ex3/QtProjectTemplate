@@ -2,8 +2,7 @@
 
 ## Requirements:
 - Visual Studio 2022
-- cmake (>=3.25)
-- ninja (>=1.12.1)
+- cmake (>=3.20)
 - python (>= 3.10)
 - git
 

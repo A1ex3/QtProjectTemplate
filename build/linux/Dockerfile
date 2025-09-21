@@ -1,7 +1,9 @@
 FROM ubuntu:22.04
 
-WORKDIR /usr/qtproject/
-COPY . /usr/qtproject/
+RUN adduser qtproject
+
+WORKDIR /home/qtproject/
+COPY . /home/qtproject/
 
 RUN ./build/linux/ubuntu/prepare.sh
 RUN python3 configure.py
@@ -25,5 +27,7 @@ RUN cd /tmp \
     && cp build/src/appimagetool /usr/local/bin \
     && cd /tmp \
     && rm -rf appimagetool/
+
+USER qtproject
 
 CMD [ "bash", "-c", "source /etc/profile && cmake -S . -B out -G Ninja && cmake --build out --config Release" ]
