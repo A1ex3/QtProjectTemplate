@@ -1,0 +1,12 @@
+{
+  "name": "QtProjectTemplate",
+  "image": "qtproject:latest",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/user/project,type=bind,consistency=cached",
+  "workspaceFolder": "/home/user/project",
+  "remoteUser": "user",
+  "extensions": [
+    "TheQtCompany.qt-cpp-pack",
+    "ms-vscode.makefile-tools",
+    "ms-python.python"
+  ]
+}

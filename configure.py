@@ -1,4 +1,4 @@
-import subprocess, pathlib, os, argparse, shutil
+import subprocess, pathlib, os, argparse, shutil, tarfile, socket, urllib.request, urllib.parse
 from build.third_party_info import QT_INFO
 from build.system import current_os, get_mount_partitions
 
@@ -39,6 +39,34 @@ def remove_path(path):
     else:
         return
 
+def extract_tar_xz(dest, src):
+    with tarfile.open(src, 'r:xz') as tar:
+        root_dir = tar.getnames()[0].split('/')[0]
+        for member in tar.getmembers():
+            member_path = os.path.join(dest, os.path.relpath(member.name, root_dir))
+            if member.isdir():
+                os.makedirs(member_path, exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(member_path), exist_ok=True)
+                with open(member_path, 'wb') as f:
+                    f.write(tar.extractfile(member).read())
+
+def ping(host, port=443, timeout=15):
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+def download_file(url, dest):
+    dest_path = pathlib.Path(dest)
+    if dest_path.exists():
+        print(f"{dest} already exists, skipping download.")
+        return
+    print(f"Downloading {url} -> {dest} ...")
+    urllib.request.urlretrieve(url, dest)
+    print("Download completed.")
+
 class PrepareThirdParty:
     def __init__(self, windows_drive_letter = None):
         self.__SCRIPT_BUILD_QT_WINDOWS = f"{BUILD_DIR_WINDOWS}\\build_qt.bat"
@@ -52,18 +80,38 @@ class PrepareThirdParty:
             drive_letter (str | None) - only for Windows.
         """
 
+        QT_MIRROR = "https://mirror.yandex.ru/mirrors/qt.io/official_releases/qt"
+        QT_MINOR_VERSION = QT_INFO.version.rsplit('.', 1)[0]
+        QT_MIRROR_ARCHIVE = f"qt-everywhere-src-{QT_INFO.version}.tar.xz"
+        QT_MIRROR_DOWNLOAD_PATH = f"third_party/{QT_MIRROR_ARCHIVE}"
+        QT_MIRROR_URL = f"{QT_MIRROR}/{QT_MINOR_VERSION}/{QT_INFO.version}/single/{QT_MIRROR_ARCHIVE}"
+
         print("Starting Qt setup...")
+
+        # Check git host
+        main_git_host = urllib.parse.urlparse(QT_INFO.repository).netloc
+        if not ping(main_git_host):
+            print(f"Git server {main_git_host} is not reachable, mirror will be used instead.")
+            use_mirror = True
+        else:
+            use_mirror = False
+
         if current_os() == "windows":
             assert drive_letter in get_mount_partitions(), f"Error: the drive letter must be one of these: {get_mount_partitions()}. Got letter: {drive_letter}"
 
             if not dir_is_exists(f"{drive_letter}:/Qt/{QT_INFO.version}"):
                 if not dir_is_exists("third_party/qt"):
-                    print("Qt sources not found. Cloning...")
-                    run_command(f"git clone {QT_INFO.repository} third_party/qt")
-                    os.chdir("third_party/qt")
-                    run_command(f"git checkout {QT_INFO.hash_commit}")
-                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations qttools")
-                    os.chdir(PWD)
+                    if use_mirror:
+                        download_file(QT_MIRROR_URL, QT_MIRROR_DOWNLOAD_PATH)
+                        extract_tar_xz("third_party/qt", QT_MIRROR_DOWNLOAD_PATH)
+                        remove_path(QT_MIRROR_DOWNLOAD_PATH)
+                    else:
+                        print("Qt sources not found. Cloning...")
+                        run_command(f"git clone {QT_INFO.repository} third_party/qt")
+                        os.chdir("third_party/qt")
+                        run_command(f"git checkout {QT_INFO.hash_commit}")
+                        run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations qttools")
+                        os.chdir(PWD)
 
                 print("Starting 'configure' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} configure {drive_letter} {QT_INFO.version}")
@@ -90,12 +138,19 @@ class PrepareThirdParty:
         if current_os() == "linux":
             if not dir_is_exists(f"/usr/lib/Qt/{QT_INFO.version}"):
                 if not dir_is_exists("third_party/qt"):
-                    print("Qt sources not found. Cloning...")
-                    run_command(f"git clone {QT_INFO.repository} third_party/qt")
-                    os.chdir("third_party/qt")
-                    run_command(f"git checkout {QT_INFO.hash_commit}")
-                    run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations qttools")
-                    os.chdir(PWD)
+                    if use_mirror:
+                        download_file(QT_MIRROR_URL, QT_MIRROR_DOWNLOAD_PATH)
+                        extract_tar_xz("third_party/qt", QT_MIRROR_DOWNLOAD_PATH)
+                        run_command("chown -R $USER:$USER third_party/qt")
+                        run_command("chmod -R 755 third_party/qt")
+                        remove_path(QT_MIRROR_DOWNLOAD_PATH)
+                    else:
+                        print("Qt sources not found. Cloning...")
+                        run_command(f"git clone {QT_INFO.repository} third_party/qt")
+                        os.chdir("third_party/qt")
+                        run_command(f"git checkout {QT_INFO.hash_commit}")
+                        run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations qttools")
+                        os.chdir(PWD)
 
                 print("Starting 'configure' Qt...")
                 run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} configure {QT_INFO.version}")

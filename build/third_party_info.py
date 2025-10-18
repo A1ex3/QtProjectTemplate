@@ -7,4 +7,4 @@ class _ThirdPartyInfo:
     hash_commit: str
     repository: str | None = None
 
-QT_INFO = _ThirdPartyInfo("Qt", "6.8.1", "41d5d04f71871d94a76a1910ef153139a9746c32", "https://code.qt.io/qt/qt5.git")
+QT_INFO = _ThirdPartyInfo("Qt", "6.10.0", "077347cc6d198053fb61cc0841c5c0c60a7deeb1", "https://code.qt.io/qt/qt5.git")

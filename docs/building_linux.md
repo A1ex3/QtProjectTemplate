@@ -15,5 +15,21 @@ docker build -t qtproject:latest -f build/linux/Dockerfile .
 
 ## Building the project.
 ```bash
-docker run --rm -it -v "$PWD:/home/qtproject" qtproject:latest
+docker run --rm -it -v "$PWD:/home/user/project" qtproject:latest
+```
+
+## Building inside the container.
+
+### Prepare the environment and configure the project
+```bash
+source /etc/profile
+```
+
+```bash
+cmake -B out -G Ninja .
+```
+
+### Build
+```bash
+cmake --build out --config Release
 ```
