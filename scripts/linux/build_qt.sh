@@ -81,7 +81,7 @@ function update_env () {
     fi
 
     echo "export PATH=\"\$PATH:$qt_full_directory/bin\"" | tee /etc/profile.d/qt_init.sh > /dev/null
-    echo "export QT_FULL_DIRECTORY=\"$qt_full_directory\"" | tee -a /etc/profile.d/qt_init.sh > /dev/null
+    echo "export QT_PATH=\"$qt_full_directory\"" | tee -a /etc/profile.d/qt_init.sh > /dev/null
 
     chmod +x /etc/profile.d/qt_init.sh
 

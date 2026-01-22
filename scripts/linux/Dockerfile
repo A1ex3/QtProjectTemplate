@@ -8,7 +8,7 @@ RUN useradd -m -s /bin/bash user
 WORKDIR /home/user/project/
 COPY . /home/user/project/
 
-RUN ./build/linux/ubuntu/prepare.sh
+RUN ./scripts/linux/ubuntu/prepare.sh
 RUN python3 configure.py
 
 RUN cd /tmp \

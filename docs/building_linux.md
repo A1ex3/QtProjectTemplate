@@ -10,7 +10,7 @@ git clone https://github.com/A1ex3/QtProjectTemplate.git
 
 ## Building a Docker image.
 ```bash
-docker build -t qtproject:latest -f build/linux/Dockerfile .
+docker build -t qtproject:latest -f scripts/linux/Dockerfile .
 ```
 
 ## Building the project.

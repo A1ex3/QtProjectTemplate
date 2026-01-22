@@ -3,9 +3,9 @@ setlocal enabledelayedexpansion
 
 set "ARG_STAGE=%1"
 set "PWD=%CD%"
-set "PYTHON_LOGGER=!PWD!\build\logger.py"
-set "LOG_FILE=!PWD!\build\logs\build_data.log"
-set "PATH_TO_THIS_FILE=!PWD!\build\windows\build_qt.bat"
+set "PYTHON_LOGGER=!PWD!\scripts\logger.py"
+set "LOG_FILE=!PWD!\scripts\logs\build_data.log"
+set "PATH_TO_THIS_FILE=!PWD!\scripts\windows\build_qt.bat"
 
 if "%ARG_STAGE%"=="configure" (
     if "%2"=="" (
@@ -164,11 +164,11 @@ if "%ARG_STAGE%"=="update_env" (
         setx /M Path "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!\bin;!TMP_PATH!"
     )
 
-    if not defined QT_FULL_DIRECTORY (
-        setx /M QT_FULL_DIRECTORY "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!"
+    if not defined QT_PATH (
+        setx /M QT_PATH "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!"
     ) else (
-        if "%QT_FULL_DIRECTORY%" neq "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!" (
-            setx /M QT_FULL_DIRECTORY "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!"
+        if "%QT_PATH%" neq "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!" (
+            setx /M QT_PATH "!ARG_DRIVE_LETTER!:\Qt\!ARG_QT_VERSION!"
         )
     )
 )

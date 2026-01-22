@@ -1,11 +1,10 @@
 import subprocess, pathlib, os, argparse, shutil, tarfile, socket, urllib.request, urllib.parse
-from build.third_party_info import QT_INFO
-from build.system import current_os, get_mount_partitions
+from scripts.third_party_info import ThirdPartyInfo, EnumThirdPartyInfoType
+from scripts.system import current_os, get_mount_partitions, EnumPlatformSystem
+from scripts.update_qt_version import QT_VERSION
 
 PWD = pathlib.Path().absolute()
-BUILD_DIR = "build"
-BUILD_DIR_WINDOWS = f"{BUILD_DIR}\\windows"
-BUILD_DIR_LINUX = f"{BUILD_DIR}/linux"
+SCRIPTS_DIR = "scripts"
 
 def run_command(cmd):
     print(cmd)
@@ -69,8 +68,9 @@ def download_file(url, dest):
 
 class PrepareThirdParty:
     def __init__(self, windows_drive_letter = None):
-        self.__SCRIPT_BUILD_QT_WINDOWS = f"{BUILD_DIR_WINDOWS}\\build_qt.bat"
-        self.__SCRIPT_BUILD_QT_LINUX = f"{BUILD_DIR_LINUX}/build_qt.sh"
+        self.__THIRD_PARTY_DIR = "third_party"
+        self.__SCRIPTS_WINDOWS_DIR = f"{SCRIPTS_DIR}\\windows"
+        self.__SCRIPTS_LINUX_DIR = f"{SCRIPTS_DIR}/linux"
 
         self.qt(windows_drive_letter)
 
@@ -80,112 +80,147 @@ class PrepareThirdParty:
             drive_letter (str | None) - only for Windows.
         """
 
-        QT_MIRROR = "https://mirror.yandex.ru/mirrors/qt.io/official_releases/qt"
-        QT_MINOR_VERSION = QT_INFO.version.rsplit('.', 1)[0]
-        QT_MIRROR_ARCHIVE = f"qt-everywhere-src-{QT_INFO.version}.tar.xz"
-        QT_MIRROR_DOWNLOAD_PATH = f"third_party/{QT_MIRROR_ARCHIVE}"
-        QT_MIRROR_URL = f"{QT_MIRROR}/{QT_MINOR_VERSION}/{QT_INFO.version}/single/{QT_MIRROR_ARCHIVE}"
+        QT_NAME = "Qt"
+
+        SCRIPT_BUILD_QT_WINDOWS = f"{self.__SCRIPTS_WINDOWS_DIR}\\build_qt.bat"
+        SCRIPT_BUILD_QT_LINUX = f"{self.__SCRIPTS_LINUX_DIR}/build_qt.sh"
+
+        def qt_mirror_ping(mirrors_list):
+            for mirror in mirrors_list:
+                if ping(urllib.parse.urlparse(mirror.url).netloc):
+                    return mirror
+            raise RuntimeError(f"All Qt mirrors is unavailable: {mirrors_list}")
+
+        QT_MIRROR_YANDEX = "https://mirror.yandex.ru/mirrors/qt.io/official_releases/qt"
+        QT_MIRROR_YANDEX_MINOR_VERSION = QT_VERSION.rsplit('.', 1)[0]
+        QT_MIRROR_YANDEX_ARCHIVE = f"qt-everywhere-src-{QT_VERSION}.tar.xz"
+        QT_MIRROR_YANDEX_URL = f"{QT_MIRROR_YANDEX}/{QT_MIRROR_YANDEX_MINOR_VERSION}/{QT_VERSION}/single/{QT_MIRROR_YANDEX_ARCHIVE}"
+
+        # In order of priority.
+        QT_MIRRORS_THIRD_PARTY_INFO_NAME_ORIGINAL_REPO = f"{QT_NAME}_OriginalRepo"
+        QT_MIRRORS_THIRD_PARTY_INFO_NAME_YANDEX_MIRROR = f"{QT_NAME}_YandexMirror"
+        QT_MIRRORS = [
+            ThirdPartyInfo(
+                struct_type=EnumThirdPartyInfoType.GIT,
+                name=QT_MIRRORS_THIRD_PARTY_INFO_NAME_ORIGINAL_REPO,
+                version=QT_VERSION,
+                hash_commit="077347cc6d198053fb61cc0841c5c0c60a7deeb1",
+                url="https://code.qt.io/qt/qt5.git"
+            ),
+            ThirdPartyInfo(
+                struct_type=EnumThirdPartyInfoType.HTTP_FILE,
+                name=QT_MIRRORS_THIRD_PARTY_INFO_NAME_YANDEX_MIRROR,
+                version=QT_VERSION,
+                url=QT_MIRROR_YANDEX_URL
+            )
+        ]
+
+        def qt_mirror_make_download_path():
+            path_str_ = f"{self.__THIRD_PARTY_DIR}"
+            if QT_MIRROR_INFO.name == QT_MIRRORS_THIRD_PARTY_INFO_NAME_YANDEX_MIRROR:
+                return f"{path_str_}/{QT_MIRROR_YANDEX_ARCHIVE}"
+            else:
+                raise RuntimeError(f"Unknown Qt mirror name: {QT_MIRROR_INFO.name}")
 
         print("Starting Qt setup...")
-
-        # Check git host
-        main_git_host = urllib.parse.urlparse(QT_INFO.repository).netloc
-        if not ping(main_git_host):
-            print(f"Git server {main_git_host} is not reachable, mirror will be used instead.")
-            use_mirror = True
-        else:
-            use_mirror = False
-
-        if current_os() == "windows":
+        if current_os() == EnumPlatformSystem.WINDOWS:
             assert drive_letter in get_mount_partitions(), f"Error: the drive letter must be one of these: {get_mount_partitions()}. Got letter: {drive_letter}"
 
-            if not dir_is_exists(f"{drive_letter}:/Qt/{QT_INFO.version}"):
-                if not dir_is_exists("third_party/qt"):
-                    if use_mirror:
-                        download_file(QT_MIRROR_URL, QT_MIRROR_DOWNLOAD_PATH)
-                        extract_tar_xz("third_party/qt", QT_MIRROR_DOWNLOAD_PATH)
+            if not dir_is_exists(f"{drive_letter}:/Qt/{QT_VERSION}"):
+                if not dir_is_exists(f"{self.__THIRD_PARTY_DIR}/qt"):
+                    QT_MIRROR_INFO = qt_mirror_ping(QT_MIRRORS)
+
+                    if QT_MIRROR_INFO.struct_type == EnumThirdPartyInfoType.HTTP_FILE:
+                        QT_MIRROR_DOWNLOAD_PATH = qt_mirror_make_download_path()
+
+                        download_file(QT_MIRROR_INFO.url, QT_MIRROR_DOWNLOAD_PATH)
+                        extract_tar_xz(f"{self.__THIRD_PARTY_DIR}/qt", QT_MIRROR_DOWNLOAD_PATH)
                         remove_path(QT_MIRROR_DOWNLOAD_PATH)
-                    else:
+                    elif QT_MIRROR_INFO.struct_type == EnumThirdPartyInfoType.GIT:
                         print("Qt sources not found. Cloning...")
-                        run_command(f"git clone {QT_INFO.repository} third_party/qt")
-                        os.chdir("third_party/qt")
-                        run_command(f"git checkout {QT_INFO.hash_commit}")
+                        run_command(f"git clone {QT_MIRROR_INFO.url} {self.__THIRD_PARTY_DIR}/qt")
+                        os.chdir(f"{self.__THIRD_PARTY_DIR}/qt")
+                        run_command(f"git checkout {QT_MIRROR_INFO.hash_commit}")
                         run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations qttools")
                         os.chdir(PWD)
 
                 print("Starting 'configure' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} configure {drive_letter} {QT_INFO.version}")
+                run_command(f"{SCRIPT_BUILD_QT_WINDOWS} configure {drive_letter} {QT_VERSION}")
                 print("Starting 'build' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} build {drive_letter}")
+                run_command(f"{SCRIPT_BUILD_QT_WINDOWS} build {drive_letter}")
                 print("Starting 'install' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} install {drive_letter} {QT_INFO.version}")
+                run_command(f"{SCRIPT_BUILD_QT_WINDOWS} install {drive_letter} {QT_VERSION}")
                 print("Starting 'update_env' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} update_env {drive_letter} {QT_INFO.version}")
+                run_command(f"{SCRIPT_BUILD_QT_WINDOWS} update_env {drive_letter} {QT_VERSION}")
 
                 if dir_is_exists(f"{drive_letter}:/Qt/qt-build"):
                     print(f"Delete directory...: {drive_letter}:/Qt/qt-build")
                     remove_path(f"{drive_letter}:/Qt/qt-build")
             else:
-                print(f"Qt is already installed at path: {drive_letter}:/Qt/{QT_INFO.version}")
+                print(f"Qt is already installed at path: {drive_letter}:/Qt/{QT_VERSION}")
 
                 if dir_is_exists(f"{drive_letter}:/Qt/qt-build"):
                     print(f"Delete directory...: {drive_letter}:/Qt/qt-build")
                     remove_path(f"{drive_letter}:/Qt/qt-build")
                 
                 print("Starting 'update_env' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_WINDOWS} update_env {drive_letter} {QT_INFO.version}")
+                run_command(f"{SCRIPT_BUILD_QT_WINDOWS} update_env {drive_letter} {QT_VERSION}")
         
-        if current_os() == "linux":
-            if not dir_is_exists(f"/usr/lib/Qt/{QT_INFO.version}"):
-                if not dir_is_exists("third_party/qt"):
-                    if use_mirror:
-                        download_file(QT_MIRROR_URL, QT_MIRROR_DOWNLOAD_PATH)
-                        extract_tar_xz("third_party/qt", QT_MIRROR_DOWNLOAD_PATH)
-                        run_command("chown -R $USER:$USER third_party/qt")
-                        run_command("chmod -R 755 third_party/qt")
+        if current_os() == EnumPlatformSystem.LINUX:
+            if not dir_is_exists(f"/usr/lib/Qt/{QT_VERSION}"):
+                if not dir_is_exists(f"{self.__THIRD_PARTY_DIR}/qt"):
+                    QT_MIRROR_INFO = qt_mirror_ping(QT_MIRRORS)
+
+                    if QT_MIRROR_INFO.struct_type == EnumThirdPartyInfoType.HTTP_FILE:
+                        QT_MIRROR_DOWNLOAD_PATH = qt_mirror_make_download_path()
+
+                        download_file(QT_MIRROR_INFO.url, QT_MIRROR_DOWNLOAD_PATH)
+                        extract_tar_xz(f"{self.__THIRD_PARTY_DIR}/qt", QT_MIRROR_DOWNLOAD_PATH)
+                        run_command(f"chown -R $USER:$USER {self.__THIRD_PARTY_DIR}/qt")
+                        run_command(f"chmod -R 755 {self.__THIRD_PARTY_DIR}/qt")
                         remove_path(QT_MIRROR_DOWNLOAD_PATH)
-                    else:
+                    elif QT_MIRROR_INFO.struct_type == EnumThirdPartyInfoType.GIT:
                         print("Qt sources not found. Cloning...")
-                        run_command(f"git clone {QT_INFO.repository} third_party/qt")
-                        os.chdir("third_party/qt")
-                        run_command(f"git checkout {QT_INFO.hash_commit}")
+                        run_command(f"git clone {QT_MIRROR_INFO.url} {self.__THIRD_PARTY_DIR}/qt")
+                        os.chdir(f"{self.__THIRD_PARTY_DIR}/qt")
+                        run_command(f"git checkout {QT_MIRROR_INFO.hash_commit}")
                         run_command(f"git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtshadertools qtimageformats qtsvg qttranslations qttools")
                         os.chdir(PWD)
 
                 print("Starting 'configure' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} configure {QT_INFO.version}")
+                run_command(f"{SCRIPT_BUILD_QT_LINUX} configure {QT_VERSION}")
                 print("Starting 'build' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} build")
+                run_command(f"{SCRIPT_BUILD_QT_LINUX} build")
                 print("Starting 'install' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} install {QT_INFO.version}")
+                run_command(f"{SCRIPT_BUILD_QT_LINUX} install {QT_VERSION}")
                 print("Starting 'update_env' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} update_env {QT_INFO.version}")
+                run_command(f"{SCRIPT_BUILD_QT_LINUX} update_env {QT_VERSION}")
 
                 if dir_is_exists("/tmp/Qt/qt-build"):
                     print("Delete directory...: /tmp/Qt")
                     remove_path("/tmp/Qt")
             else:
-                print(f"Qt is already installed at path: /usr/lib/Qt/{QT_INFO.version}")
+                print(f"Qt is already installed at path: /usr/lib/Qt/{QT_VERSION}")
 
                 if dir_is_exists("/tmp/Qt/qt-build"):
                     print("Delete directory...: /tmp/Qt")
                     remove_path("/tmp/Qt")
 
                 print("Starting 'update_env' Qt...")
-                run_command(f"{self.__SCRIPT_BUILD_QT_LINUX} update_env {QT_INFO.version}")
+                run_command(f"{SCRIPT_BUILD_QT_LINUX} update_env {QT_VERSION}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Build Third Party Dependencies.")
-    if current_os() == 'windows':
+    if current_os() == EnumPlatformSystem.WINDOWS:
         parser.add_argument('--drive-letter', type=str, required=True, help="Drive letter for Windows OS.")
     
     args = parser.parse_args()
 
-    if current_os() == 'windows':
+    if current_os() == EnumPlatformSystem.WINDOWS:
         drive_letter = args.drive_letter
-        PrepareThirdParty(drive_letter)
-    elif current_os() == 'linux':
+        PrepareThirdParty(windows_drive_letter=drive_letter)
+    elif current_os() == EnumPlatformSystem.LINUX:
         PrepareThirdParty()
     else:
-        print(f"Unsupported OS: {current_os()}")
+        print(f"Unsupported OS: {current_os().NAME}")
         exit(1)
